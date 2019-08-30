@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <title>Teste API - AlphaVantage</title>
+</head>
+<body>
+    <div class="container bg-primary" style="margin: 2% auto; border-radius: 0.5rem;">
+        <h1 class="h1 text-center text-white">Teste de API - AlphaVantage </h1><hr />
+        <form class="form-group" style="width: 60%; margin: auto">
+            <label class="text-white">Selecione aqui uma empresa para verificar a cotação:</label>
+            <select class="form-control" id="empresa">
+                <option disabled selected>Selecione...</option>
+                <option value="MSFT">Microsoft</option>
+                <option value="ABEV">AmBev</option>
+                <option value="PBR">Petrobras</option>
+                <option value="AAPL">Apple</option>
+            </select>
+        </form>
+        <button class="btn btn-success" id="btn_cotacao_empresa">Verificar Cotação</button>
+    </div>
+    <br />
+    <div class="container bg-success text-white" id="painel_cotacao" style="display: none;">
+        <h4>Atualizado em: <span id="empresa_cotacao_datahora"></span></h4>
+        <div class="row" id="painel_cotacao_grid">
+            <div class="col-md-6">
+                <h5>Código BV: <strong><span id="empresa_nome"></span></strong></h5>
+                <h5>Valor da ação (US$): <strong><span id="empresa_cotacao_valor"></span></strong></h5>
+                <h5>Valor de alta (US$): <strong><span id="empresa_cotacao_alta"></span></strong></h5>
+                <h5>Valor de baixa (US$): <strong><span id="empresa_cotacao_baixa"></span></strong></h5>
+            </div>
+            <div class="col-md-6">
+                <h5>Valor de fechamento (US$): <strong><span id="empresa_cotacao_fechamento"></span></strong></h5>
+                <h5>Volume de ações: <strong><span id="empresa_cotacao_volume"></span></strong></h5>
+                <h5>Quantidade de dividendos: <strong><span id="empresa_cotacao_dividendos"></span></strong></h5>
+                <h5>Coeficiente de divisão: <strong><span id="empresa_cotacao_coeficiente"></span></strong></h5>
+            </div>
+        </div>
+    </div>
+    
+<script>
+    $(document).ready(function(){
+
+        $('#btn_cotacao_empresa').click(function(){
+            let valor = $('#empresa').attr('selected', true).val();
+            
+            if(!valor){
+                alert("Por favor, selecione uma empresa na lista!");
+                return;
+            }
+                
+            obter_cotacao(valor);
+        });
+    });
+
+    function obter_cotacao(empresa) {
+        let funcao = 'TIME_SERIES_DAILY_ADJUSTED';
+        let symbol = empresa;
+        let tamanhoSaida = 'full';
+        let chave = 'QQGWMDYL8M8GOIWT';
+
+        $.ajax({
+            url: 'https://www.alphavantage.co/query?function=' + 
+                funcao + '&symbol=' + symbol + '&outputsize=' + 
+                tamanhoSaida + '&apikey=' + chave,
+
+            method: 'GET',
+
+            dataType: 'JSON',
+
+            beforeSend: function(){
+                $('#btn_cotacao_empresa').html("Carregando...");
+            },
+
+            success: function(cotacao) {
+                $('#painel_cotacao').show(500);
+                preencherInformacoes(cotacao);
+            }
+        });
+    }
+
+    function preencherInformacoes(cotacao) {
+        let dia = gerarDiaAtualCotacao();
+        $('#btn_cotacao_empresa').html("Verificar cotação");
+
+        $('#painel_cotacao_grid').hide(100);
+        $('#painel_cotacao_grid').show(100);
+
+        $('#empresa_nome').html(cotacao["Meta Data"]["2. Symbol"]);
+        $('#empresa_cotacao_datahora').html(cotacao["Meta Data"]["3. Last Refreshed"]);
+        $('#empresa_cotacao_abertura').html(cotacao["Time Series (Daily)"][dia]);
+        $('#empresa_cotacao_valor').html(cotacao["Time Series (Daily)"][dia]["1. open"]);
+        $('#empresa_cotacao_alta').html(cotacao["Time Series (Daily)"][dia]["2. high"]);
+        $('#empresa_cotacao_baixa').html(cotacao["Time Series (Daily)"][dia]["3. low"]);
+        $('#empresa_cotacao_fechamento').html(cotacao["Time Series (Daily)"][dia]["4. close"]);
+        $('#empresa_cotacao_volume').html(cotacao["Time Series (Daily)"][dia]["6. volume"]);
+        $('#empresa_cotacao_dividendos').html(cotacao["Time Series (Daily)"][dia]["7. dividend amount"]);
+        $('#empresa_cotacao_coeficiente').html(cotacao["Time Series (Daily)"][dia]["8. split coefficient"]);
+    }
+
+    function gerarDiaAtualCotacao() {
+        var todayTime = new Date();
+        var month = todayTime.getMonth() + 1;
+        var day = todayTime.getDate();
+        var year = todayTime.getFullYear();
+
+        return year + "-" + (month < 10 ? "0" : "") + month + "-" + day;
+    }
+</script>
+</body>
+</html>
