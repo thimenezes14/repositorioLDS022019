@@ -10,19 +10,21 @@
     <title>Teste API - AlphaVantage</title>
 </head>
 <body>
-    <div class="container bg-primary" style="margin: 2% auto; border-radius: 0.5rem;">
+    <div class="container bg-primary" style="margin: 2% auto; border-radius: 0.5rem; padding: 2%;">
         <h1 class="h1 text-center text-white">Teste de API - AlphaVantage </h1><hr />
-        <form class="form-group" style="width: 60%; margin: auto">
-            <label class="text-white">Selecione aqui uma empresa para verificar a cotação:</label>
-            <select class="form-control" id="empresa">
+        <p class="text-center text-white">Selecione aqui uma empresa para verificar a cotação:</p>
+       
+        <form class="form-group form-inline" style="width: 60%; margin: auto; text-align: center">
+            <select class="form-control" id="empresa" style="width: 70%">
                 <option disabled selected>Selecione...</option>
                 <option value="MSFT">Microsoft</option>
                 <option value="ABEV">AmBev</option>
                 <option value="PBR">Petrobras</option>
                 <option value="AAPL">Apple</option>
             </select>
+            <button type="button" class="btn btn-success" id="btn_cotacao_empresa">Verificar Cotação</button>
         </form>
-        <button class="btn btn-success" id="btn_cotacao_empresa">Verificar Cotação</button>
+        
     </div>
     <br />
     <div class="container bg-success text-white" id="painel_cotacao" style="display: none;">
@@ -80,6 +82,12 @@
             success: function(cotacao) {
                 $('#painel_cotacao').show(500);
                 preencherInformacoes(cotacao);
+            },
+
+            error: function(error, status) {
+                $('#btn_cotacao_empresa').html("Verificar cotação");
+                console.log("Não foi possível realizar a comunicação.");
+                console.log(error + " - " + status);
             }
         });
     }
